@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InvenPro — Enterprise Inventory Management</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0b0e13;--surface:#13171f;--surface2:#1a1f2b;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --accent:#4ade80;--accent2:#22d3ee;--accent3:#f59e0b;--accent4:#f87171;--accent5:#a78bfa;
+  --text:#e8edf5;--text2:#8a93a6;--text3:#4e5668;
+  --sidebar-w:220px;--font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;min-height:100vh;font-size:14px;line-height:1.5;}
+
+/* SIDEBAR */
+.sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;}
+.logo{padding:20px 20px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.logo-icon{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;}
+.logo-text{font-size:16px;font-weight:600;letter-spacing:-.3px;}
+.logo-text span{color:var(--accent);}
+nav{padding:12px 10px;flex:1;overflow-y:auto;}
+.nav-section{font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;padding:10px 10px 6px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;color:var(--text2);cursor:pointer;transition:all .15s;font-size:13.5px;font-weight:400;margin-bottom:2px;user-select:none;}
+.nav-item svg{width:16px;height:16px;flex-shrink:0;opacity:.7;}
+.nav-item:hover{background:var(--surface2);color:var(--text);}
+.nav-item:hover svg{opacity:1;}
+.nav-item.active{background:rgba(74,222,128,.1);color:var(--accent);}
+.nav-item.active svg{opacity:1;}
+.nav-badge{margin-left:auto;background:var(--accent4);color:#fff;font-size:10px;font-weight:600;padding:1px 6px;border-radius:99px;}
+.sidebar-footer{padding:12px;border-top:1px solid var(--border);}
+.user-card{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;transition:background .15s;}
+.user-card:hover{background:var(--surface2);}
+.avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#4ade80,#22d3ee);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#0b0e13;flex-shrink:0;}
+.user-info{flex:1;min-width:0;}
+.user-name{font-size:13px;font-weight:500;}
+.user-role{font-size:11px;color:var(--text3);}
+
+/* MAIN */
+.main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;}
+
+/* TOPBAR */
+.topbar{height:56px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 24px;position:sticky;top:0;background:var(--bg);z-index:50;}
+.topbar-title{font-size:15px;font-weight:500;flex:1;}
+.search-box{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 12px;width:220px;transition:border-color .15s;}
+.search-box:focus-within{border-color:var(--border2);}
+.search-box input{background:none;border:none;outline:none;color:var(--text);font-family:var(--font);font-size:13px;width:100%;}
+.search-box input::placeholder{color:var(--text3);}
+.search-box svg{width:14px;height:14px;color:var(--text3);flex-shrink:0;}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s;}
+.btn-primary{background:var(--accent);color:#0b0e13;}
+.btn-primary:hover{background:#6ee7a0;}
+.btn-danger{background:rgba(248,113,113,.12);color:var(--accent4);border:1px solid rgba(248,113,113,.25);}
+.btn-danger:hover{background:rgba(248,113,113,.22);}
+.btn-ghost{background:var(--surface);color:var(--text2);border:1px solid var(--border);}
+.btn-ghost:hover{background:var(--surface2);color:var(--text);}
+.notif-btn{width:34px;height:34px;background:var(--surface);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;transition:background .15s;}
+.notif-btn:hover{background:var(--surface2);}
+.notif-btn svg{width:16px;height:16px;color:var(--text2);}
+.notif-dot{position:absolute;top:6px;right:6px;width:6px;height:6px;border-radius:50%;background:var(--accent4);}
+.role-chip{font-size:10.5px;font-weight:500;padding:2px 8px;border-radius:4px;background:rgba(74,222,128,.1);color:var(--accent);border:1px solid rgba(74,222,128,.2);}
+
+/* PAGES */
+.page{display:none;padding:24px;flex:1;}
+.page.active{display:block;animation:fadeUp .3s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.card-title{font-size:14px;font-weight:500;}
+.card-sub{font-size:12px;color:var(--text3);margin-top:2px;}
+.mb20{margin-bottom:20px;}
+.mb24{margin-bottom:24px;}
+
+/* STAT CARDS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;transition:border-color .15s;cursor:default;}
+.stat-card:hover{border-color:var(--border2);}
+.stat-label{font-size:12px;color:var(--text2);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
+.stat-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;}
+.stat-icon svg{width:14px;height:14px;}
+.stat-icon.g{background:rgba(74,222,128,.15);color:var(--accent);}
+.stat-icon.b{background:rgba(34,211,238,.15);color:var(--accent2);}
+.stat-icon.y{background:rgba(245,158,11,.15);color:var(--accent3);}
+.stat-icon.r{background:rgba(248,113,113,.15);color:var(--accent4);}
+.stat-icon.p{background:rgba(167,139,250,.15);color:var(--accent5);}
+.stat-val{font-size:26px;font-weight:600;letter-spacing:-.5px;margin-bottom:4px;font-family:var(--mono);}
+.stat-change{font-size:11.5px;}
+.stat-change.up{color:var(--accent);}
+.stat-change.down{color:var(--accent4);}
+
+/* TABLE */
+.table-scroll{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+thead th{font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;padding:11px 20px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;}
+tbody tr{transition:background .1s;cursor:pointer;}
+tbody tr:hover{background:var(--surface2);}
+tbody td{padding:12px 20px;font-size:13px;border-bottom:1px solid var(--border);vertical-align:middle;}
+tbody tr:last-child td{border-bottom:none;}
+
+/* PILLS */
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;padding:3px 9px;border-radius:99px;white-space:nowrap;}
+.pill-green{background:rgba(74,222,128,.12);color:var(--accent);}
+.pill-yellow{background:rgba(245,158,11,.12);color:var(--accent3);}
+.pill-red{background:rgba(248,113,113,.12);color:var(--accent4);}
+.pill-blue{background:rgba(34,211,238,.12);color:var(--accent2);}
+.pill-purple{background:rgba(167,139,250,.12);color:var(--accent5);}
+.pill-gray{background:rgba(255,255,255,.06);color:var(--text3);}
+
+/* ITEM CELL */
+.item-cell{display:flex;align-items:center;gap:10px;}
+.item-icon{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.item-name{font-weight:500;font-size:13px;}
+.item-sku{font-size:11px;color:var(--text3);font-family:var(--mono);}
+
+/* STOCK BAR */
+.stock-bar-wrap{display:flex;align-items:center;gap:8px;}
+.stock-bar{height:4px;background:var(--surface2);border-radius:99px;flex:1;overflow:hidden;min-width:60px;}
+.stock-fill{height:100%;border-radius:99px;}
+.stock-num{font-size:12px;font-family:var(--mono);color:var(--text2);min-width:36px;text-align:right;}
+
+/* TWO COL */
+.two-col{display:grid;grid-template-columns:1fr 340px;gap:16px;margin-bottom:24px;}
+.side-stack{display:flex;flex-direction:column;gap:16px;}
+
+/* ACTIVITY */
+.activity-item{display:flex;gap:12px;padding:12px 20px;border-bottom:1px solid var(--border);align-items:flex-start;}
+.activity-item:last-child{border-bottom:none;}
+.act-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.act-text{font-size:12.5px;color:var(--text2);line-height:1.4;}
+.act-text strong{color:var(--text);font-weight:500;}
+.act-time{font-size:11px;color:var(--text3);margin-top:2px;}
+
+/* ORDER ROW */
+.order-row{display:flex;align-items:center;padding:12px 20px;border-bottom:1px solid var(--border);gap:10px;transition:background .1s;cursor:pointer;}
+.order-row:hover{background:var(--surface2);}
+.order-row:last-child{border-bottom:none;}
+.order-info{flex:1;min-width:0;}
+.order-id{font-size:12.5px;font-weight:500;font-family:var(--mono);}
+.order-meta{font-size:11.5px;color:var(--text3);}
+.order-amt{font-size:13px;font-weight:500;font-family:var(--mono);}
+
+/* ALERT */
+.alert-banner{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;margin-bottom:20px;font-size:13px;}
+.alert-banner svg{width:16px;height:16px;color:var(--accent3);flex-shrink:0;}
+
+/* BAR CHART */
+.chart-bar-wrap{padding:20px;}
+.bar-row{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.bar-label{font-size:12px;color:var(--text2);width:110px;flex-shrink:0;text-align:right;}
+.bar-track{flex:1;height:8px;background:var(--surface2);border-radius:99px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:99px;}
+.bar-val{font-size:12px;font-family:var(--mono);color:var(--text2);width:55px;text-align:right;}
+
+/* FORM */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:20px;}
+.form-group{display:flex;flex-direction:column;gap:6px;}
+.form-group.full{grid-column:1/-1;}
+.form-label{font-size:12px;font-weight:500;color:var(--text2);}
+.form-input{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:var(--font);font-size:13px;outline:none;transition:border-color .15s;width:100%;}
+.form-input:focus{border-color:var(--border2);}
+.form-input::placeholder{color:var(--text3);}
+select.form-input option{background:var(--surface);}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;}
+.modal-bg.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:14px;width:540px;max-width:95vw;max-height:90vh;overflow-y:auto;}
+.modal-header{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.modal-title{font-size:15px;font-weight:600;}
+.modal-close{width:28px;height:28px;background:var(--surface2);border:none;border-radius:6px;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:background .15s;}
+.modal-close:hover{background:var(--border2);}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;}
+
+/* SETTINGS */
+.settings-row{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);}
+.settings-row:last-child{border-bottom:none;}
+.settings-label{font-size:13px;font-weight:500;}
+.settings-sub{font-size:12px;color:var(--text3);margin-top:2px;}
+.toggle{width:38px;height:20px;background:var(--surface2);border-radius:99px;position:relative;cursor:pointer;transition:background .2s;border:1px solid var(--border2);flex-shrink:0;}
+.toggle.on{background:var(--accent);}
+.toggle::after{content:'';position:absolute;width:14px;height:14px;background:#fff;border-radius:50%;top:2px;left:2px;transition:left .2s;}
+.toggle.on::after{left:20px;}
+
+/* AUDIT */
+.audit-row{display:flex;gap:16px;padding:14px 20px;border-bottom:1px solid var(--border);align-items:flex-start;}
+.audit-row:last-child{border-bottom:none;}
+.audit-time{font-size:11px;font-family:var(--mono);color:var(--text3);width:75px;flex-shrink:0;padding-top:1px;}
+.audit-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.audit-icon svg{width:13px;height:13px;}
+.audit-body{flex:1;}
+.audit-action{font-size:13px;color:var(--text);}
+.audit-action strong{font-weight:500;}
+.audit-meta{font-size:11.5px;color:var(--text3);margin-top:2px;}
+
+/* SUPPLIER */
+.sup-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
+.sup-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;transition:border-color .15s;cursor:pointer;}
+.sup-card:hover{border-color:var(--border2);}
+.sup-name{font-size:14px;font-weight:500;margin-bottom:4px;}
+.sup-meta{font-size:12px;color:var(--text3);}
+
+/* TABS */
+.tab-bar{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:20px;}
+.tab-btn{padding:8px 16px;font-size:13px;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;background:none;border-top:none;border-left:none;border-right:none;font-family:var(--font);}
+.tab-btn:hover{color:var(--text);}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-pane{display:none;}
+.tab-pane.active{display:block;}
+
+/* FLEX */
+.flex-between{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.text2{color:var(--text2);}
+.text3{color:var(--text3);}
+.mono{font-family:var(--mono);}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;right:24px;background:var(--accent);color:#0b0e13;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:500;z-index:999;display:none;box-shadow:0 8px 24px rgba(0,0,0,.4);}
+</style>
+</head>
+<body>
+
+<!-- ══════════════ SIDEBAR ══════════════ -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">📦</div>
+    <span class="logo-text">Inven<span>Pro</span></span>
+  </div>
+  <nav>
+    <div class="nav-section">Main</div>
+    <div class="nav-item active" onclick="navigate(this,'dashboard')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Dashboard
+    </div>
+    <div class="nav-item" onclick="navigate(this,'inventory')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>Inventory
+    </div>
+    <div class="nav-item" onclick="navigate(this,'orders')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>Orders<span class="nav-badge">8</span>
+    </div>
+    <div class="nav-item" onclick="navigate(this,'suppliers')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>Suppliers
+    </div>
+    <div class="nav-item" onclick="navigate(this,'reports')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Reports
+    </div>
+    <div class="nav-section">Admin</div>
+    <div class="nav-item" onclick="navigate(this,'users')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>Users & Roles
+    </div>
+    <div class="nav-item" onclick="navigate(this,'settings')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>Settings
+    </div>
+    <div class="nav-item" onclick="navigate(this,'audit')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Audit Logs
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-card">
+      <div class="avatar">AD</div>
+      <div class="user-info"><div class="user-name">Arjun Desai</div><div class="user-role">Administrator</div></div>
+    </div>
+  </div>
+</aside>
+
+<!-- ══════════════ MAIN ══════════════ -->
+<div class="main">
+  <header class="topbar">
+    <span class="topbar-title" id="page-title">Dashboard</span>
+    <div class="search-box">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Search…" />
+    </div>
+    <button class="btn btn-ghost" style="font-size:12px;">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="14" y2="12"/><line x1="4" y1="18" x2="11" y2="18"/></svg>Filter
+    </button>
+    <button class="btn btn-primary" id="topbar-cta">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      <span id="topbar-cta-label">Add Item</span>
+    </button>
+    <div class="notif-btn"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg><span class="notif-dot"></span></div>
+    <span class="role-chip">Admin</span>
+  </header>
+
+  <!-- ══ DASHBOARD ══ -->
+  <div class="page active" id="page-dashboard">
+    <div class="alert-banner">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span><strong>5 items</strong> are below minimum stock threshold — <a href="#" onclick="navTo('inventory');return false;" style="color:var(--accent3);">review now</a></span>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-label">Total Products<div class="stat-icon g"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg></div></div><div class="stat-val">2,847</div><div class="stat-change up">↑ 4.2% this month</div></div>
+      <div class="stat-card"><div class="stat-label">Active Orders<div class="stat-icon b"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg></div></div><div class="stat-val">138</div><div class="stat-change up">↑ 12 new today</div></div>
+      <div class="stat-card"><div class="stat-label">Total Revenue<div class="stat-icon y"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div></div><div class="stat-val">₹48.3L</div><div class="stat-change up">↑ 8.7% vs last month</div></div>
+      <div class="stat-card"><div class="stat-label">Low Stock Items<div class="stat-icon r"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div></div><div class="stat-val">5</div><div class="stat-change down">↓ needs restock</div></div>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-header"><div><div class="card-title">Inventory Overview</div><div class="card-sub">Top 8 products</div></div><button class="btn btn-ghost" style="font-size:12px;padding:5px 10px;" onclick="navTo('inventory')">View all</button></div>
+        <div class="table-scroll"><table><thead><tr><th>Product</th><th>Category</th><th>Stock</th><th>Price</th><th>Status</th></tr></thead><tbody>
+          <tr><td><div class="item-cell"><div class="item-icon" style="background:rgba(74,222,128,.1)">🖥️</div><div><div class="item-name">Dell XPS 15"</div><div class="item-sku">SKU-00412</div></div></div></td><td class="text2">Electronics</td><td><div class="stock-bar-wrap"><div class="stock-bar"><div class="stock-fill" style="width:72%;background:var(--accent)"></div></div><span class="stock-num">144</span></div></td><td class="mono">₹1,04,999</td><td><span class="pill pill-green">● In Stock</span></td></tr>
+          <tr><td><div class="item-cell"><div class="item-icon" style="background:rgba(34,211,238,.1)">📱</div><div><div class="item-name">iPhone 15 Pro</div><div class="item-sku">SKU-00287</div></div></div></td><td class="text2">Electronics</td><td><div class="stock-bar-wrap"><div class="stock-bar"><div class="stock-fill" style="width:18%;background:var(--accent4)"></div></div><span class="stock-num">23</span></div></td><td class="mono">₹1,34,900</td><td><span class="pill pill-red">● Low Stock</span></td></tr>
+          <tr><td><div class="item-cell"><div class="item-icon" style="background:rgba(245,158,11,.1)">🖨️</div><div><div class="item-name">HP LaserJet Pro</div><div class="item-sku">SKU-00561</div></div></div></td><td class="text2">Office</td><td><div class="stock-bar-wrap"><div class="stock-bar"><div class="stock-fill" style="width:55%;background:var(--accent3)"></div></div><span class="stock-num">82</span></div></td><td class="mono">₹28,500</td><td><span class="pill pill-yellow">● Medium</span></td></tr>
+          <tr><td><div class="item-cell"><div class="item-icon" style="background:rgba(74,222,128,.1)">⌨️</div><div><div class="item-name">Logitech MX Keys</div><div class="item-sku">SKU-00198</div></div></div></td><td class="text2">Peripherals</td><td><div class="stock-bar-wrap"><div class="stock-bar"><div class="stock-fill" style="width:90%;background:var(--accent)"></div></div><span class="stock-num">312</span></div></td><td class="mono">₹9,995</td><td><span class="pill pill-green">● In Stock</span></td></tr>
+          <tr><td><div class="item-cell"><div class="item-icon" style="background:rgba(248,113,113,.1)">🖱️</div><div><div class="item-name">Razer DeathAdder</div><div class="item-sku">SKU-00334</div></div></div></td><td class="text2">Peripherals</td><td><div class="stock-bar-wrap"><div class="stock-bar"><div class="stock-fill" style="width:8%;background:var(--accent4)"></div></div><span class="stock-num">11</span></div></td><td class="mono">₹5,499</td><td><span class="pill pill-red">● Low Stock</span></td></tr>
+          <tr><td><div class="item-cell"><div class="item-icon" style="background:rgba(34,211,238,.1)">📷</div><div><div class="item-name">Sony A7 IV</div><div class="item-sku">SKU-00720</div></div></div></td><td class="text2">Cameras</td><td><div class="stock-bar-wrap"><div class="stock-bar"><div class="stock-fill" style="width:40%;background:var(--accent2)"></div></div><span class="stock-num">58</span></div></td><td class="mono">₹2,69,990</td><td><span class="pill pill-blue">● Available</span></td></tr>
+          <tr><td><div class="item-cell"><div class="item-icon" style="background:rgba(74,222,128,.1)">🔋</div><div><div class="item-name">Anker 26800 mAh</div><div class="item-sku">SKU-00445</div></div></div></td><td class="text2">Accessories</td><td><div class="stock-bar-wrap"><div class="stock-bar"><div class="stock-fill" style="width:85%;background:var(--accent)"></div></div><span class="stock-num">420</span></div></td><td class="mono">₹3,999</td><td><span class="pill pill-green">● In Stock</span></td></tr>
+          <tr><td><div class="item-cell"><div class="item-icon" style="background:rgba(245,158,11,.1)">🎧</div><div><div class="item-name">Sony WH-1000XM5</div><div class="item-sku">SKU-00609</div></div></div></td><td class="text2">Audio</td><td><div class="stock-bar-wrap"><div class="stock-bar"><div class="stock-fill" style="width:30%;background:var(--accent3)"></div></div><span class="stock-num">45</span></div></td><td class="mono">₹29,990</td><td><span class="pill pill-yellow">● Medium</span></td></tr>
+        </tbody></table></div>
+      </div>
+      <div class="side-stack">
+        <div class="card">
+          <div class="card-header"><div><div class="card-title">Recent Orders</div><div class="card-sub">Last 24 hours</div></div><span class="pill pill-blue">8 pending</span></div>
+          <div>
+            <div class="order-row"><div class="order-info"><div class="order-id">#ORD-9021</div><div class="order-meta">TechSupplies Ltd · 3 items</div></div><span class="pill pill-yellow">Processing</span><div class="order-amt">₹3.2L</div></div>
+            <div class="order-row"><div class="order-info"><div class="order-id">#ORD-9020</div><div class="order-meta">DigiMart · 7 items</div></div><span class="pill pill-green">Shipped</span><div class="order-amt">₹87K</div></div>
+            <div class="order-row"><div class="order-info"><div class="order-id">#ORD-9019</div><div class="order-meta">Acme Corp · 2 items</div></div><span class="pill pill-red">On Hold</span><div class="order-amt">₹2.1L</div></div>
+            <div class="order-row"><div class="order-info"><div class="order-id">#ORD-9018</div><div class="order-meta">StarBuy · 12 items</div></div><span class="pill pill-green">Delivered</span><div class="order-amt">₹56K</div></div>
+            <div class="order-row"><div class="order-info"><div class="order-id">#ORD-9017</div><div class="order-meta">GlobalEdge · 5 items</div></div><span class="pill pill-blue">Confirmed</span><div class="order-amt">₹1.4L</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Recent Activity</div></div>
+          <div>
+            <div class="activity-item"><div class="act-dot" style="background:var(--accent)"></div><div><div class="act-text"><strong>Arjun D.</strong> added 200 units of Logitech MX Keys</div><div class="act-time">2 min ago</div></div></div>
+            <div class="activity-item"><div class="act-dot" style="background:var(--accent4)"></div><div><div class="act-text"><strong>Priya S.</strong> raised low-stock alert on Razer DeathAdder</div><div class="act-time">18 min ago</div></div></div>
+            <div class="activity-item"><div class="act-dot" style="background:var(--accent2)"></div><div><div class="act-text">Order <strong>#ORD-9020</strong> marked as Shipped</div><div class="act-time">42 min ago</div></div></div>
+            <div class="activity-item"><div class="act-dot" style="background:var(--accent3)"></div><div><div class="act-text"><strong>Rahul M.</strong> updated price for Sony WH-1000XM5</div><div class="act-time">1 hr ago</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ INVENTORY ══ -->
+  <div class="page" id="page-inventory">
+    <div class="flex-between">
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-ghost" style="font-size:12px;">All Categories</button>
+        <button class="btn btn-ghost" style="font-size:12px;">In Stock</button>
+        <button class="btn btn-ghost" style="font-size:12px;">Low Stock</button>
+        <button class="btn btn-ghost" style="font-size:12px;">Out of Stock</button>
+      </div>
+      <button class="btn btn-primary" onclick="openModal('m-item')"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Item</button>
+    </div>
+    <div class="card">
+      <div class="card-header"><div><div class="card-title">All Products</div><div class="card-sub">2,847 products total</div></div></div>
+      <div class="table-scroll"><table><thead><tr><th>Product</th><th>SKU</th><th>Category</th><th>Stock</th><th>Min</th><th>Unit Price</th><th>Total Value</th><th>Status</th><th></th></tr></thead><tbody>
+        <tr><td><div class="item-cell"><div class="item-icon" style="background:rgba(74,222,128,.1)">🖥️</div><div class="item-name">Dell XPS 15"</div></div></td><td class="mono text3">SKU-00412</td><td class="text2">Electronics</td><td><div class="stock-bar-wrap"><div class="stock-bar"><div class="stock-fill" style="width:72%;background:var(--accent)"></div></div><span class="stock-num">144</span></div></td><td class="text3">50</td><td class="mono">₹1,04,999</td><td class="mono">₹1.51Cr</td><td><span class="pill pill-green">● In Stock</span></td><td><button class="btn btn-ghost" style="font-size:11px;padding:3px 8px;">Edit</button></td></tr>
+        <tr><td><div class="item-cell"><div class="item-icon" style="background:rgba(34,211,238,.1)">📱</div><div class="item-name">iPhone 15 Pro</div></div></td><td class="mono text3">SKU-00287</td><td class="text2">Electronics</td><td><div class="stock-bar-wrap"><div class="stock-bar"><div class="stock-fill" style="width:18%;background:var(--accent4)"></div></div><span class="stock-num">23</span></div></td><td class="text3">40</td><td class="mono">₹1,34,900</td><td class="mono">₹31L</td><td><span class="pill pill-red">● Low Stock</span></td><td><button class="btn btn-ghost" style="font-size:11px;padding:3px 8px;">Edit</button></td></tr>
+        <tr><td><div class="item-cell"><div class="item-icon" style="background:rgba(245,158,11,.1)">🖨️</div><div class="item-name">HP LaserJet Pro</div></div></td><td class="mono text3">SKU-00561</td><td class="text2">Office</td><td><div class="stock-bar-wrap"><div class="stock-bar"><div class="stock-fill" style="width:55%;background:var(--accent3)"></div></div><span class="stock-num">82</span></div></td><td class="text3">30</td><td class="mono">₹28,500</td><td class="mono">₹23.4L</td><td><span class="pill pill-yellow">● Medium</span></td><td><button class="btn btn-ghost" style="font-size:11px;padding:3px 8px;">Edit</button></td></tr>
+        <tr><td><div class="item-cell"><div class="item-icon" style="background:rgba(74,222,128,.1)">⌨️</div><div class="item-name">Logitech MX Keys</div></div></td><td class="mono text3">SKU-00198</td><td class="text2">Peripherals</td><td><div class="stock-bar-wrap"><div class="stock-bar"><div class="stock-fill" style="width:90%;background:var(--accent)"></div></div><span class="stock-num">312</span></div></td><td class="text3">50</td><td class="mono">₹9,995</td><td class="mono">₹31.2L</td><td><span class="pill pill-green">● In Stock</span></td><td><button class="btn btn-ghost" style="font-size:11px;padding:3px 8px;">Edit</button></td></tr>
+        <tr><td><div class="item-cell"><div class="item-icon" style="background:rgba(248,113,113,.1)">🖱️</div><div class="item-name">Razer DeathAdder</div></div></td><td class="mono text3">SKU-00334</td><td class="text2">Peripherals</td><td><div class="stock-bar-wrap"><div class="stock-bar"><div class="stock-fill" style="width:8%;background:var(--accent4)"></div></div><span class="stock-num">11</span></div></td><td class="text3">25</td><td class="mono">₹5,499</td><td class="mono">₹60.5K</td><td><span class="pill pill-red">● Low Stock</span></td><td><button class="btn btn-ghost" style="font-size:11px;padding:3px 8px;">Edit</button></td></tr>
+        <tr><td><div class="item-cell"><div class="item-icon" style="background:rgba(34,211,238,.1)">📷</div><div class="item-name">Sony A7 IV</div></div></td><td class="mono text3">SKU-00720</td><td class="text2">Cameras</td><td><div class="stock-bar-wrap"><div class="stock-bar"><div class="stock-fill" style="width:40%;background:var(--accent2)"></div></div><span class="stock-num">58</span></div></td><td class="text3">20</td><td class="mono">₹2,69,990</td><td class="mono">₹1.57Cr</td><td><span class="pill pill-blue">● Available</span></td><td><button class="btn btn-ghost" style="font-size:11px;padding:3px 8px;">Edit</button></td></tr>
+        <tr><td><div class="item-cell"><div class="item-icon" style="background:rgba(74,222,128,.1)">🔋</div><div class="item-name">Anker 26800 mAh</div></div></td><td class="mono text3">SKU-00445</td><td class="text2">Accessories</td><td><div class="stock-bar-wrap"><div class="stock-bar"><div class="stock-fill" style="width:85%;background:var(--accent)"></div></div><span class="stock-num">420</span></div></td><td class="text3">60</td><td class="mono">₹3,999</td><td class="mono">₹16.8L</td><td><span class="pill pill-green">● In Stock</span></td><td><button class="btn btn-ghost" style="font-size:11px;padding:3px 8px;">Edit</button></td></tr>
+        <tr><td><div class="item-cell"><div class="item-icon" style="background:rgba(245,158,11,.1)">🎧</div><div class="item-name">Sony WH-1000XM5</div></div></td><td class="mono text3">SKU-00609</td><td class="text2">Audio</td><td><div class="stock-bar-wrap"><div class="stock-bar"><div class="stock-fill" style="width:30%;background:var(--accent3)"></div></div><span class="stock-num">45</span></div></td><td class="text3">30</td><td class="mono">₹29,990</td><td class="mono">₹13.5L</td><td><span class="pill pill-yellow">● Medium</span></td><td><button class="btn btn-ghost" style="font-size:11px;padding:3px 8px;">Edit</button></td></tr>
+        <tr><td><div class="item-cell"><div class="item-icon" style="background:rgba(167,139,250,.1)">💡</div><div class="item-name">Philips Smart Bulb</div></div></td><td class="mono text3">SKU-00812</td><td class="text2">Smart Home</td><td><div class="stock-bar-wrap"><div class="stock-bar"><div class="stock-fill" style="width:100%;background:var(--accent)"></div></div><span class="stock-num">680</span></div></td><td class="text3">100</td><td class="mono">₹1,799</td><td class="mono">₹12.2L</td><td><span class="pill pill-green">● In Stock</span></td><td><button class="btn btn-ghost" style="font-size:11px;padding:3px 8px;">Edit</button></td></tr>
+        <tr><td><div class="item-cell"><div class="item-icon" style="background:rgba(248,113,113,.1)">🖱️</div><div class="item-name">Apple Magic Mouse</div></div></td><td class="mono text3">SKU-00903</td><td class="text2">Peripherals</td><td><div class="stock-bar-wrap"><div class="stock-bar"><div class="stock-fill" style="width:5%;background:var(--accent4)"></div></div><span class="stock-num">6</span></div></td><td class="text3">20</td><td class="mono">₹6,900</td><td class="mono">₹41.4K</td><td><span class="pill pill-red">● Low Stock</span></td><td><button class="btn btn-ghost" style="font-size:11px;padding:3px 8px;">Edit</button></td></tr>
+      </tbody></table></div>
+    </div>
+  </div>
+
+  <!-- ══ ORDERS ══ -->
+  <div class="page" id="page-orders">
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-label">Total Orders<div class="stat-icon b"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/></svg></div></div><div class="stat-val">138</div><div class="stat-change up">↑ 12 today</div></div>
+      <div class="stat-card"><div class="stat-label">Pending<div class="stat-icon y"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div></div><div class="stat-val">8</div><div class="stat-change down">↓ needs action</div></div>
+      <div class="stat-card"><div class="stat-label">Shipped<div class="stat-icon g"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div></div><div class="stat-val">43</div><div class="stat-change up">↑ on time</div></div>
+      <div class="stat-card"><div class="stat-label">Revenue MTD<div class="stat-icon p"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div></div><div class="stat-val">₹18.7L</div><div class="stat-change up">↑ 6.2%</div></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div><div class="card-title">All Orders</div><div class="card-sub">138 orders total</div></div>
+        <div style="display:flex;gap:8px;">
+          <select class="form-input" style="width:140px;padding:6px 10px;font-size:12px;"><option>All Status</option><option>Processing</option><option>Shipped</option><option>Delivered</option><option>On Hold</option><option>Confirmed</option></select>
+          <button class="btn btn-primary" onclick="openModal('m-order')" style="font-size:12px;padding:6px 12px;">+ New Order</button>
+        </div>
+      </div>
+      <div class="table-scroll"><table><thead><tr><th>Order ID</th><th>Supplier / Customer</th><th>Items</th><th>Date</th><th>Amount</th><th>Status</th><th></th></tr></thead><tbody>
+        <tr><td class="mono">#ORD-9021</td><td><div class="item-name">TechSupplies Ltd</div><div class="item-sku">Mumbai, MH</div></td><td class="text2">3 items</td><td class="text3" style="font-size:12px;">07 May 2026</td><td class="mono">₹3,20,000</td><td><span class="pill pill-yellow">Processing</span></td><td><button class="btn btn-ghost" style="font-size:11px;padding:3px 8px;">View</button></td></tr>
+        <tr><td class="mono">#ORD-9020</td><td><div class="item-name">DigiMart</div><div class="item-sku">Pune, MH</div></td><td class="text2">7 items</td><td class="text3" style="font-size:12px;">07 May 2026</td><td class="mono">₹87,000</td><td><span class="pill pill-green">Shipped</span></td><td><button class="btn btn-ghost" style="font-size:11px;padding:3px 8px;">View</button></td></tr>
+        <tr><td class="mono">#ORD-9019</td><td><div class="item-name">Acme Corp</div><div class="item-sku">Delhi, DL</div></td><td class="text2">2 items</td><td class="text3" style="font-size:12px;">06 May 2026</td><td class="mono">₹2,10,000</td><td><span class="pill pill-red">On Hold</span></td><td><button class="btn btn-ghost" style="font-size:11px;padding:3px 8px;">View</button></td></tr>
+        <tr><td class="mono">#ORD-9018</td><td><div class="item-name">StarBuy</div><div class="item-sku">Bengaluru, KA</div></td><td class="text2">12 items</td><td class="text3" style="font-size:12px;">06 May 2026</td><td class="mono">₹56,000</td><td><span class="pill pill-green">Delivered</span></td><td><button class="btn btn-ghost" style="font-size:11px;padding:3px 8px;">View</button></td></tr>
+        <tr><td class="mono">#ORD-9017</td><td><div class="item-name">GlobalEdge</div><div class="item-sku">Chennai, TN</div></td><td class="text2">5 items</td><td class="text3" style="font-size:12px;">05 May 2026</td><td class="mono">₹1,40,000</td><td><span class="pill pill-blue">Confirmed</span></td><td><button class="btn btn-ghost" style="font-size:11px;padding:3px 8px;">View</button></td></tr>
+        <tr><td class="mono">#ORD-9016</td><td><div class="item-name">Nexus Retail</div><div class="item-sku">Hyderabad, TS</div></td><td class="text2">9 items</td><td class="text3" style="font-size:12px;">05 May 2026</td><td class="mono">₹4,50,000</td><td><span class="pill pill-green">Delivered</span></td><td><button class="btn btn-ghost" style="font-size:11px;padding:3px 8px;">View</button></td></tr>
+        <tr><td class="mono">#ORD-9015</td><td><div class="item-name">BrightTech</div><div class="item-sku">Ahmedabad, GJ</div></td><td class="text2">4 items</td><td class="text3" style="font-size:12px;">04 May 2026</td><td class="mono">₹98,500</td><td><span class="pill pill-yellow">Processing</span></td><td><button class="btn btn-ghost" style="font-size:11px;padding:3px 8px;">View</button></td></tr>
+        <tr><td class="mono">#ORD-9014</td><td><div class="item-name">SmartZone</div><div class="item-sku">Kolkata, WB</div></td><td class="text2">6 items</td><td class="text3" style="font-size:12px;">04 May 2026</td><td class="mono">₹1,75,000</td><td><span class="pill pill-purple">Partial</span></td><td><button class="btn btn-ghost" style="font-size:11px;padding:3px 8px;">View</button></td></tr>
+      </tbody></table></div>
+    </div>
+  </div>
+
+  <!-- ══ SUPPLIERS ══ -->
+  <div class="page" id="page-suppliers">
+    <div class="flex-between">
+      <div class="text2" style="font-size:13px;">12 registered suppliers</div>
+      <button class="btn btn-primary" onclick="openModal('m-supplier')"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Supplier</button>
+    </div>
+    <div class="sup-grid">
+      <div class="sup-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;"><div class="sup-name">TechSupplies Ltd</div><span class="pill pill-green">● Active</span></div><div class="sup-meta">📍 Mumbai, MH</div><div class="sup-meta" style="margin-top:4px;">📦 1,240 units supplied</div><div class="sup-meta" style="margin-top:4px;">💰 ₹48.3L total orders</div><div style="display:flex;gap:6px;margin-top:12px;"><button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;">View</button><button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;">Contact</button></div></div>
+      <div class="sup-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;"><div class="sup-name">DigiMart Wholesale</div><span class="pill pill-green">● Active</span></div><div class="sup-meta">📍 Pune, MH</div><div class="sup-meta" style="margin-top:4px;">📦 870 units supplied</div><div class="sup-meta" style="margin-top:4px;">💰 ₹22.1L total orders</div><div style="display:flex;gap:6px;margin-top:12px;"><button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;">View</button><button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;">Contact</button></div></div>
+      <div class="sup-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;"><div class="sup-name">Acme Corp</div><span class="pill pill-yellow">● On Review</span></div><div class="sup-meta">📍 Delhi, DL</div><div class="sup-meta" style="margin-top:4px;">📦 310 units supplied</div><div class="sup-meta" style="margin-top:4px;">💰 ₹9.8L total orders</div><div style="display:flex;gap:6px;margin-top:12px;"><button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;">View</button><button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;">Contact</button></div></div>
+      <div class="sup-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;"><div class="sup-name">GlobalEdge Pvt Ltd</div><span class="pill pill-green">● Active</span></div><div class="sup-meta">📍 Chennai, TN</div><div class="sup-meta" style="margin-top:4px;">📦 2,100 units supplied</div><div class="sup-meta" style="margin-top:4px;">💰 ₹67.4L total orders</div><div style="display:flex;gap:6px;margin-top:12px;"><button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;">View</button><button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;">Contact</button></div></div>
+      <div class="sup-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;"><div class="sup-name">Nexus Retail</div><span class="pill pill-green">● Active</span></div><div class="sup-meta">📍 Hyderabad, TS</div><div class="sup-meta" style="margin-top:4px;">📦 990 units supplied</div><div class="sup-meta" style="margin-top:4px;">💰 ₹31.2L total orders</div><div style="display:flex;gap:6px;margin-top:12px;"><button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;">View</button><button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;">Contact</button></div></div>
+      <div class="sup-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;"><div class="sup-name">BrightTech India</div><span class="pill pill-gray">● Inactive</span></div><div class="sup-meta">📍 Ahmedabad, GJ</div><div class="sup-meta" style="margin-top:4px;">📦 120 units supplied</div><div class="sup-meta" style="margin-top:4px;">💰 ₹4.1L total orders</div><div style="display:flex;gap:6px;margin-top:12px;"><button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;">View</button><button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;">Contact</button></div></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Supplier Performance</div></div>
+      <div class="table-scroll"><table><thead><tr><th>Supplier</th><th>On-Time Delivery</th><th>Quality Rating</th><th>Total Orders</th><th>Outstanding</th><th>Status</th></tr></thead><tbody>
+        <tr><td><div class="item-name">TechSupplies Ltd</div></td><td><div class="stock-bar-wrap"><div class="stock-bar"><div class="stock-fill" style="width:94%;background:var(--accent)"></div></div><span class="stock-num">94%</span></div></td><td><span style="color:var(--accent3);">★★★★★</span> <span class="text3" style="font-size:11px;">4.8</span></td><td class="mono">₹48.3L</td><td class="mono text3">₹3.2L</td><td><span class="pill pill-green">● Active</span></td></tr>
+        <tr><td><div class="item-name">DigiMart Wholesale</div></td><td><div class="stock-bar-wrap"><div class="stock-bar"><div class="stock-fill" style="width:88%;background:var(--accent)"></div></div><span class="stock-num">88%</span></div></td><td><span style="color:var(--accent3);">★★★★</span><span style="color:var(--text3);">★</span> <span class="text3" style="font-size:11px;">4.1</span></td><td class="mono">₹22.1L</td><td class="mono text3">₹87K</td><td><span class="pill pill-green">● Active</span></td></tr>
+        <tr><td><div class="item-name">GlobalEdge Pvt Ltd</div></td><td><div class="stock-bar-wrap"><div class="stock-bar"><div class="stock-fill" style="width:97%;background:var(--accent)"></div></div><span class="stock-num">97%</span></div></td><td><span style="color:var(--accent3);">★★★★★</span> <span class="text3" style="font-size:11px;">4.9</span></td><td class="mono">₹67.4L</td><td class="mono text3">₹1.4L</td><td><span class="pill pill-green">● Active</span></td></tr>
+        <tr><td><div class="item-name">Acme Corp</div></td><td><div class="stock-bar-wrap"><div class="stock-bar"><div class="stock-fill" style="width:62%;background:var(--accent3)"></div></div><span class="stock-num">62%</span></div></td><td><span style="color:var(--accent3);">★★★</span><span style="color:var(--text3);">★★</span> <span class="text3" style="font-size:11px;">2.9</span></td><td class="mono">₹9.8L</td><td class="mono text3">₹2.1L</td><td><span class="pill pill-yellow">● Review</span></td></tr>
+      </tbody></table></div>
+    </div>
+  </div>
+
+  <!-- ══ REPORTS ══ -->
+  <div class="page" id="page-reports">
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab(this,'rep-revenue')">Revenue</button>
+      <button class="tab-btn" onclick="switchTab(this,'rep-category')">By Category</button>
+      <button class="tab-btn" onclick="switchTab(this,'rep-stock')">Stock Summary</button>
+    </div>
+    <div class="tab-pane active" id="rep-revenue">
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">This Month<div class="stat-icon g"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg></div></div><div class="stat-val">₹18.7L</div><div class="stat-change up">↑ 8.7%</div></div>
+        <div class="stat-card"><div class="stat-label">Last Month<div class="stat-icon b"></div></div><div class="stat-val">₹17.2L</div><div class="stat-change up">↑ 3.1%</div></div>
+        <div class="stat-card"><div class="stat-label">Q1 Total<div class="stat-icon y"></div></div><div class="stat-val">₹48.3L</div><div class="stat-change up">↑ 12.4%</div></div>
+        <div class="stat-card"><div class="stat-label">Annual Target<div class="stat-icon r"></div></div><div class="stat-val">₹2.1Cr</div><div class="stat-change">23% achieved</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Monthly Revenue — 2026</div></div>
+        <div class="chart-bar-wrap">
+          <div class="bar-row"><span class="bar-label">January</span><div class="bar-track"><div class="bar-fill" style="width:72%;background:var(--accent2)"></div></div><span class="bar-val">₹15.1L</span></div>
+          <div class="bar-row"><span class="bar-label">February</span><div class="bar-track"><div class="bar-fill" style="width:65%;background:var(--accent2)"></div></div><span class="bar-val">₹13.7L</span></div>
+          <div class="bar-row"><span class="bar-label">March</span><div class="bar-track"><div class="bar-fill" style="width:91%;background:var(--accent)"></div></div><span class="bar-val">₹19.4L</span></div>
+          <div class="bar-row"><span class="bar-label">April</span><div class="bar-track"><div class="bar-fill" style="width:82%;background:var(--accent2)"></div></div><span class="bar-val">₹17.2L</span></div>
+          <div class="bar-row"><span class="bar-label">May (MTD)</span><div class="bar-track"><div class="bar-fill" style="width:44%;background:var(--accent3)"></div></div><span class="bar-val">₹9.3L</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="tab-pane" id="rep-category">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Sales by Category</div></div>
+        <div class="chart-bar-wrap">
+          <div class="bar-row"><span class="bar-label">Electronics</span><div class="bar-track"><div class="bar-fill" style="width:88%;background:var(--accent2)"></div></div><span class="bar-val">₹21.2L</span></div>
+          <div class="bar-row"><span class="bar-label">Cameras</span><div class="bar-track"><div class="bar-fill" style="width:64%;background:var(--accent5)"></div></div><span class="bar-val">₹15.4L</span></div>
+          <div class="bar-row"><span class="bar-label">Peripherals</span><div class="bar-track"><div class="bar-fill" style="width:42%;background:var(--accent)"></div></div><span class="bar-val">₹10.1L</span></div>
+          <div class="bar-row"><span class="bar-label">Audio</span><div class="bar-track"><div class="bar-fill" style="width:28%;background:var(--accent3)"></div></div><span class="bar-val">₹6.7L</span></div>
+          <div class="bar-row"><span class="bar-label">Accessories</span><div class="bar-track"><div class="bar-fill" style="width:20%;background:var(--accent4)"></div></div><span class="bar-val">₹4.8L</span></div>
+          <div class="bar-row"><span class="bar-label">Office</span><div class="bar-track"><div class="bar-fill" style="width:15%;background:var(--text3)"></div></div><span class="bar-val">₹3.6L</span></div>
+          <div class="bar-row"><span class="bar-label">Smart Home</span><div class="bar-track"><div class="bar-fill" style="width:12%;background:var(--text3)"></div></div><span class="bar-val">₹2.9L</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="tab-pane" id="rep-stock">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Stock Health Summary</div></div>
+        <div class="table-scroll"><table><thead><tr><th>Category</th><th>Total SKUs</th><th>In Stock</th><th>Low Stock</th><th>Out of Stock</th><th>Health</th></tr></thead><tbody>
+          <tr><td>Electronics</td><td class="mono">842</td><td><span class="pill pill-green">780</span></td><td><span class="pill pill-yellow">48</span></td><td><span class="pill pill-red">14</span></td><td><div class="stock-bar-wrap"><div class="stock-bar"><div class="stock-fill" style="width:93%;background:var(--accent)"></div></div><span class="stock-num">93%</span></div></td></tr>
+          <tr><td>Peripherals</td><td class="mono">310</td><td><span class="pill pill-green">264</span></td><td><span class="pill pill-yellow">32</span></td><td><span class="pill pill-red">14</span></td><td><div class="stock-bar-wrap"><div class="stock-bar"><div class="stock-fill" style="width:85%;background:var(--accent)"></div></div><span class="stock-num">85%</span></div></td></tr>
+          <tr><td>Audio</td><td class="mono">190</td><td><span class="pill pill-green">158</span></td><td><span class="pill pill-yellow">24</span></td><td><span class="pill pill-red">8</span></td><td><div class="stock-bar-wrap"><div class="stock-bar"><div class="stock-fill" style="width:83%;background:var(--accent)"></div></div><span class="stock-num">83%</span></div></td></tr>
+          <tr><td>Cameras</td><td class="mono">124</td><td><span class="pill pill-green">112</span></td><td><span class="pill pill-yellow">9</span></td><td><span class="pill pill-red">3</span></td><td><div class="stock-bar-wrap"><div class="stock-bar"><div class="stock-fill" style="width:90%;background:var(--accent)"></div></div><span class="stock-num">90%</span></div></td></tr>
+          <tr><td>Smart Home</td><td class="mono">98</td><td><span class="pill pill-green">96</span></td><td><span class="pill pill-yellow">2</span></td><td><span class="pill pill-red">0</span></td><td><div class="stock-bar-wrap"><div class="stock-bar"><div class="stock-fill" style="width:98%;background:var(--accent)"></div></div><span class="stock-num">98%</span></div></td></tr>
+        </tbody></table></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ USERS ══ -->
+  <div class="page" id="page-users">
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab(this,'usr-list')">Users</button>
+      <button class="tab-btn" onclick="switchTab(this,'usr-roles')">Roles & Permissions</button>
+    </div>
+    <div class="tab-pane active" id="usr-list">
+      <div class="flex-between">
+        <div class="text2" style="font-size:13px;">4 users · 3 active</div>
+        <button class="btn btn-primary" onclick="openModal('m-user')" style="font-size:12px;padding:6px 12px;">+ Add User</button>
+      </div>
+      <div class="card">
+        <div class="table-scroll"><table><thead><tr><th>User</th><th>Role</th><th>Department</th><th>Last Login</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+          <tr><td><div class="item-cell"><div class="avatar" style="width:28px;height:28px;font-size:10px;flex-shrink:0;">AD</div><div><div class="item-name">Arjun Desai</div><div class="item-sku">arjun@invenpro.in</div></div></div></td><td><span class="pill pill-green">Administrator</span></td><td class="text2">IT</td><td class="text2" style="font-size:12px;">Just now</td><td><span class="pill pill-green">● Active</span></td><td><div style="display:flex;gap:6px;"><button class="btn btn-ghost" style="font-size:11px;padding:3px 8px;">Edit</button><button class="btn btn-danger" style="font-size:11px;padding:3px 8px;">Disable</button></div></td></tr>
+          <tr><td><div class="item-cell"><div class="avatar" style="width:28px;height:28px;font-size:10px;background:linear-gradient(135deg,#22d3ee,#4ade80);flex-shrink:0;">PS</div><div><div class="item-name">Priya Sharma</div><div class="item-sku">priya@invenpro.in</div></div></div></td><td><span class="pill pill-blue">Warehouse Mgr</span></td><td class="text2">Operations</td><td class="text2" style="font-size:12px;">34 min ago</td><td><span class="pill pill-green">● Active</span></td><td><div style="display:flex;gap:6px;"><button class="btn btn-ghost" style="font-size:11px;padding:3px 8px;">Edit</button><button class="btn btn-danger" style="font-size:11px;padding:3px 8px;">Disable</button></div></td></tr>
+          <tr><td><div class="item-cell"><div class="avatar" style="width:28px;height:28px;font-size:10px;background:linear-gradient(135deg,#f59e0b,#f87171);flex-shrink:0;">RM</div><div><div class="item-name">Rahul Mehta</div><div class="item-sku">rahul@invenpro.in</div></div></div></td><td><span class="pill pill-yellow">Sales Rep</span></td><td class="text2">Sales</td><td class="text2" style="font-size:12px;">1 hr ago</td><td><span class="pill pill-green">● Active</span></td><td><div style="display:flex;gap:6px;"><button class="btn btn-ghost" style="font-size:11px;padding:3px 8px;">Edit</button><button class="btn btn-danger" style="font-size:11px;padding:3px 8px;">Disable</button></div></td></tr>
+          <tr><td><div class="item-cell"><div class="avatar" style="width:28px;height:28px;font-size:10px;background:linear-gradient(135deg,#a78bfa,#ec4899);flex-shrink:0;">NK</div><div><div class="item-name">Neha Kulkarni</div><div class="item-sku">neha@invenpro.in</div></div></div></td><td><span class="pill pill-blue">Viewer</span></td><td class="text2">Finance</td><td class="text2" style="font-size:12px;">Yesterday</td><td><span class="pill pill-gray">● Inactive</span></td><td><div style="display:flex;gap:6px;"><button class="btn btn-ghost" style="font-size:11px;padding:3px 8px;">Edit</button><button class="btn btn-primary" onclick="showToast('User enabled!')" style="font-size:11px;padding:3px 8px;">Enable</button></div></td></tr>
+        </tbody></table></div>
+      </div>
+    </div>
+    <div class="tab-pane" id="usr-roles">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Roles & Permissions Matrix</div></div>
+        <div class="table-scroll"><table><thead><tr><th>Permission</th><th>Administrator</th><th>Warehouse Mgr</th><th>Sales Rep</th><th>Viewer</th></tr></thead><tbody>
+          <tr><td>View Inventory</td><td style="text-align:center;color:var(--accent);">✓</td><td style="text-align:center;color:var(--accent);">✓</td><td style="text-align:center;color:var(--accent);">✓</td><td style="text-align:center;color:var(--accent);">✓</td></tr>
+          <tr><td>Add / Edit Products</td><td style="text-align:center;color:var(--accent);">✓</td><td style="text-align:center;color:var(--accent);">✓</td><td style="text-align:center;color:var(--accent4);">✗</td><td style="text-align:center;color:var(--accent4);">✗</td></tr>
+          <tr><td>Delete Products</td><td style="text-align:center;color:var(--accent);">✓</td><td style="text-align:center;color:var(--accent4);">✗</td><td style="text-align:center;color:var(--accent4);">✗</td><td style="text-align:center;color:var(--accent4);">✗</td></tr>
+          <tr><td>Manage Orders</td><td style="text-align:center;color:var(--accent);">✓</td><td style="text-align:center;color:var(--accent);">✓</td><td style="text-align:center;color:var(--accent);">✓</td><td style="text-align:center;color:var(--accent4);">✗</td></tr>
+          <tr><td>View Reports</td><td style="text-align:center;color:var(--accent);">✓</td><td style="text-align:center;color:var(--accent);">✓</td><td style="text-align:center;color:var(--accent);">✓</td><td style="text-align:center;color:var(--accent4);">✗</td></tr>
+          <tr><td>Manage Suppliers</td><td style="text-align:center;color:var(--accent);">✓</td><td style="text-align:center;color:var(--accent);">✓</td><td style="text-align:center;color:var(--accent4);">✗</td><td style="text-align:center;color:var(--accent4);">✗</td></tr>
+          <tr><td>Manage Users</td><td style="text-align:center;color:var(--accent);">✓</td><td style="text-align:center;color:var(--accent4);">✗</td><td style="text-align:center;color:var(--accent4);">✗</td><td style="text-align:center;color:var(--accent4);">✗</td></tr>
+          <tr><td>View Audit Logs</td><td style="text-align:center;color:var(--accent);">✓</td><td style="text-align:center;color:var(--accent4);">✗</td><td style="text-align:center;color:var(--accent4);">✗</td><td style="text-align:center;color:var(--accent4);">✗</td></tr>
+          <tr><td>System Settings</td><td style="text-align:center;color:var(--accent);">✓</td><td style="text-align:center;color:var(--accent4);">✗</td><td style="text-align:center;color:var(--accent4);">✗</td><td style="text-align:center;color:var(--accent4);">✗</td></tr>
+        </tbody></table></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SETTINGS ══ -->
+  <div class="page" id="page-settings">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div>
+        <div class="card mb20">
+          <div class="card-header"><div class="card-title">General</div></div>
+          <div class="settings-row"><div><div class="settings-label">Company Name</div><div class="settings-sub">InvenPro Enterprises Pvt Ltd</div></div><button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;">Edit</button></div>
+          <div class="settings-row"><div><div class="settings-label">Financial Year</div><div class="settings-sub">April – March (Indian FY)</div></div><button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;">Edit</button></div>
+          <div class="settings-row"><div><div class="settings-label">Currency</div><div class="settings-sub">INR — Indian Rupee (₹)</div></div><button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;">Edit</button></div>
+          <div class="settings-row"><div><div class="settings-label">Time Zone</div><div class="settings-sub">IST (UTC +5:30)</div></div><button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;">Edit</button></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Database</div></div>
+          <div class="settings-row"><div><div class="settings-label">SQL Server Instance</div><div class="settings-sub">INVENPRO-DB\MSSQLSERVER2022</div></div><span class="pill pill-green">● Connected</span></div>
+          <div class="settings-row"><div><div class="settings-label">Auto Backup</div><div class="settings-sub">Daily at 2:00 AM</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+          <div class="settings-row"><div><div class="settings-label">Last Backup</div><div class="settings-sub">07 May 2026, 02:00 AM</div></div><button class="btn btn-ghost" onclick="showToast('Backup started!')" style="font-size:11px;padding:4px 10px;">Backup Now</button></div>
+        </div>
+      </div>
+      <div>
+        <div class="card mb20">
+          <div class="card-header"><div class="card-title">Notifications</div></div>
+          <div class="settings-row"><div><div class="settings-label">Low Stock Alerts</div><div class="settings-sub">Email alert when stock drops below minimum</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+          <div class="settings-row"><div><div class="settings-label">New Order Notifications</div><div class="settings-sub">Notify on new purchase orders</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+          <div class="settings-row"><div><div class="settings-label">Daily Summary Email</div><div class="settings-sub">Send daily digest at 8:00 AM</div></div><div class="toggle" onclick="this.classList.toggle('on')"></div></div>
+          <div class="settings-row"><div><div class="settings-label">System Alerts</div><div class="settings-sub">Critical system errors and warnings</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Security</div></div>
+          <div class="settings-row"><div><div class="settings-label">Two-Factor Authentication</div><div class="settings-sub">Require 2FA for all admin accounts</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+          <div class="settings-row"><div><div class="settings-label">Session Timeout</div><div class="settings-sub">Auto-logout after 30 minutes</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+          <div class="settings-row"><div><div class="settings-label">Password Policy</div><div class="settings-sub">Min 8 chars, 1 special, 1 number</div></div><button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;">Configure</button></div>
+          <div class="settings-row"><div><div class="settings-label">IP Whitelist</div><div class="settings-sub">Restrict login to approved IPs</div></div><div class="toggle" onclick="this.classList.toggle('on')"></div></div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:16px;gap:10px;">
+      <button class="btn btn-ghost">Reset</button>
+      <button class="btn btn-primary" onclick="showToast('Settings saved successfully!')">Save Settings</button>
+    </div>
+  </div>
+
+  <!-- ══ AUDIT LOGS ══ -->
+  <div class="page" id="page-audit">
+    <div class="flex-between">
+      <div style="display:flex;gap:8px;">
+        <select class="form-input" style="width:130px;padding:6px 10px;font-size:12px;"><option>All Actions</option><option>Create</option><option>Update</option><option>Delete</option><option>Login</option></select>
+        <select class="form-input" style="width:130px;padding:6px 10px;font-size:12px;"><option>All Users</option><option>Arjun Desai</option><option>Priya Sharma</option><option>Rahul Mehta</option></select>
+        <input type="date" class="form-input" style="width:140px;padding:6px 10px;font-size:12px;" />
+      </div>
+      <button class="btn btn-ghost" onclick="showToast('Exporting CSV…')" style="font-size:12px;"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export CSV</button>
+    </div>
+    <div class="card">
+      <div class="card-header"><div><div class="card-title">Audit Log</div><div class="card-sub">48 events today</div></div></div>
+      <div>
+        <div class="audit-row"><span class="audit-time">09:42 AM</span><div class="audit-icon" style="background:rgba(74,222,128,.15);"><svg fill="none" stroke="var(--accent)" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div><div class="audit-body"><div class="audit-action"><strong>Arjun Desai</strong> updated stock for <strong>Logitech MX Keys</strong> (+200 units)</div><div class="audit-meta">Module: Inventory · IP: 192.168.1.10</div></div></div>
+        <div class="audit-row"><span class="audit-time">09:24 AM</span><div class="audit-icon" style="background:rgba(248,113,113,.15);"><svg fill="none" stroke="var(--accent4)" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div><div class="audit-body"><div class="audit-action"><strong>System</strong> raised <strong>Low Stock Alert</strong> — Razer DeathAdder (11 units, min: 25)</div><div class="audit-meta">Module: Alerts · Auto-triggered</div></div></div>
+        <div class="audit-row"><span class="audit-time">09:01 AM</span><div class="audit-icon" style="background:rgba(34,211,238,.15);"><svg fill="none" stroke="var(--accent2)" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><div class="audit-body"><div class="audit-action">Order <strong>#ORD-9020</strong> status changed to <strong>Shipped</strong></div><div class="audit-meta">Module: Orders · Changed by: Priya Sharma</div></div></div>
+        <div class="audit-row"><span class="audit-time">08:47 AM</span><div class="audit-icon" style="background:rgba(245,158,11,.15);"><svg fill="none" stroke="var(--accent3)" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div><div class="audit-body"><div class="audit-action"><strong>Rahul Mehta</strong> updated price for <strong>Sony WH-1000XM5</strong> (₹27,990 → ₹29,990)</div><div class="audit-meta">Module: Inventory · IP: 192.168.1.22</div></div></div>
+        <div class="audit-row"><span class="audit-time">08:30 AM</span><div class="audit-icon" style="background:rgba(74,222,128,.15);"><svg fill="none" stroke="var(--accent)" stroke-width="2" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg></div><div class="audit-body"><div class="audit-action"><strong>Arjun Desai</strong> logged in successfully</div><div class="audit-meta">Browser: Chrome 124 · IP: 192.168.1.10 · Windows</div></div></div>
+        <div class="audit-row"><span class="audit-time">08:28 AM</span><div class="audit-icon" style="background:rgba(74,222,128,.15);"><svg fill="none" stroke="var(--accent)" stroke-width="2" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg></div><div class="audit-body"><div class="audit-action"><strong>Priya Sharma</strong> logged in successfully</div><div class="audit-meta">Browser: Firefox 125 · IP: 192.168.1.14 · Windows</div></div></div>
+        <div class="audit-row"><span class="audit-time">Yesterday</span><div class="audit-icon" style="background:rgba(167,139,250,.15);"><svg fill="none" stroke="var(--accent5)" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div><div class="audit-body"><div class="audit-action"><strong>Arjun Desai</strong> added new supplier <strong>BrightTech India</strong></div><div class="audit-meta">Module: Suppliers · IP: 192.168.1.10</div></div></div>
+        <div class="audit-row"><span class="audit-time">Yesterday</span><div class="audit-icon" style="background:rgba(248,113,113,.15);"><svg fill="none" stroke="var(--accent4)" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></div><div class="audit-body"><div class="audit-action"><strong>Arjun Desai</strong> deleted SKU <strong>SKU-00102</strong> (Discontinued product)</div><div class="audit-meta">Module: Inventory · IP: 192.168.1.10</div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ MODALS ══════════════ -->
+
+<!-- ADD ITEM -->
+<div class="modal-bg" id="m-item">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Add New Product</span><button class="modal-close" onclick="closeModal('m-item')">✕</button></div>
+    <div class="form-grid">
+      <div class="form-group full"><label class="form-label">Product Name</label><input class="form-input" placeholder="e.g. Samsung Galaxy S25" /></div>
+      <div class="form-group"><label class="form-label">SKU</label><input class="form-input" placeholder="SKU-XXXXX" /></div>
+      <div class="form-group"><label class="form-label">Category</label><select class="form-input"><option>Electronics</option><option>Peripherals</option><option>Audio</option><option>Cameras</option><option>Accessories</option><option>Office</option><option>Smart Home</option></select></div>
+      <div class="form-group"><label class="form-label">Unit Price (₹)</label><input class="form-input" type="number" placeholder="0.00" /></div>
+      <div class="form-group"><label class="form-label">Opening Stock</label><input class="form-input" type="number" placeholder="0" /></div>
+      <div class="form-group"><label class="form-label">Minimum Stock</label><input class="form-input" type="number" placeholder="10" /></div>
+      <div class="form-group"><label class="form-label">Supplier</label><select class="form-input"><option>TechSupplies Ltd</option><option>DigiMart Wholesale</option><option>GlobalEdge Pvt Ltd</option><option>Acme Corp</option></select></div>
+      <div class="form-group"><label class="form-label">Warehouse Location</label><input class="form-input" placeholder="e.g. Rack A-12" /></div>
+      <div class="form-group full"><label class="form-label">Description</label><input class="form-input" placeholder="Short product description…" /></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('m-item')">Cancel</button><button class="btn btn-primary" onclick="showToast('Product added!');closeModal('m-item')">Add Product</button></div>
+  </div>
+</div>
+
+<!-- ADD ORDER -->
+<div class="modal-bg" id="m-order">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Create New Order</span><button class="modal-close" onclick="closeModal('m-order')">✕</button></div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Order Type</label><select class="form-input"><option>Purchase Order</option><option>Sales Order</option><option>Return</option></select></div>
+      <div class="form-group"><label class="form-label">Supplier / Customer</label><select class="form-input"><option>TechSupplies Ltd</option><option>DigiMart Wholesale</option><option>GlobalEdge Pvt Ltd</option><option>Acme Corp</option></select></div>
+      <div class="form-group"><label class="form-label">Expected Delivery</label><input class="form-input" type="date" /></div>
+      <div class="form-group"><label class="form-label">Priority</label><select class="form-input"><option>Normal</option><option>Urgent</option><option>Low</option></select></div>
+      <div class="form-group full"><label class="form-label">Products (SKUs)</label><input class="form-input" placeholder="SKU-00412, SKU-00287…" /></div>
+      <div class="form-group full"><label class="form-label">Notes</label><input class="form-input" placeholder="Any special instructions…" /></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('m-order')">Cancel</button><button class="btn btn-primary" onclick="showToast('Order created!');closeModal('m-order')">Create Order</button></div>
+  </div>
+</div>
+
+<!-- ADD SUPPLIER -->
+<div class="modal-bg" id="m-supplier">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Add Supplier</span><button class="modal-close" onclick="closeModal('m-supplier')">✕</button></div>
+    <div class="form-grid">
+      <div class="form-group full"><label class="form-label">Company Name</label><input class="form-input" placeholder="e.g. Tech Ventures Pvt Ltd" /></div>
+      <div class="form-group"><label class="form-label">Contact Person</label><input class="form-input" placeholder="Full name" /></div>
+      <div class="form-group"><label class="form-label">Phone</label><input class="form-input" placeholder="+91 XXXXX XXXXX" /></div>
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" placeholder="contact@company.com" /></div>
+      <div class="form-group"><label class="form-label">City</label><input class="form-input" placeholder="e.g. Mumbai" /></div>
+      <div class="form-group"><label class="form-label">GST Number</label><input class="form-input" placeholder="27XXXXX1234X1ZX" /></div>
+      <div class="form-group full"><label class="form-label">Address</label><input class="form-input" placeholder="Full address…" /></div>
+      <div class="form-group"><label class="form-label">Payment Terms</label><select class="form-input"><option>Net 30</option><option>Net 60</option><option>Immediate</option><option>COD</option></select></div>
+      <div class="form-group"><label class="form-label">Category</label><select class="form-input"><option>Electronics</option><option>Accessories</option><option>Peripherals</option><option>General</option></select></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('m-supplier')">Cancel</button><button class="btn btn-primary" onclick="showToast('Supplier added!');closeModal('m-supplier')">Add Supplier</button></div>
+  </div>
+</div>
+
+<!-- ADD USER -->
+<div class="modal-bg" id="m-user">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Add New User</span><button class="modal-close" onclick="closeModal('m-user')">✕</button></div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">First Name</label><input class="form-input" placeholder="First name" /></div>
+      <div class="form-group"><label class="form-label">Last Name</label><input class="form-input" placeholder="Last name" /></div>
+      <div class="form-group full"><label class="form-label">Email</label><input class="form-input" type="email" placeholder="user@invenpro.in" /></div>
+      <div class="form-group"><label class="form-label">Role</label><select class="form-input"><option>Administrator</option><option>Warehouse Mgr</option><option>Sales Rep</option><option>Viewer</option></select></div>
+      <div class="form-group"><label class="form-label">Department</label><select class="form-input"><option>IT</option><option>Operations</option><option>Sales</option><option>Finance</option><option>HR</option></select></div>
+      <div class="form-group full"><label class="form-label">Temporary Password</label><input class="form-input" type="password" placeholder="Min 8 characters…" /></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('m-user')">Cancel</button><button class="btn btn-primary" onclick="showToast('User created & invite sent!');closeModal('m-user')">Create User</button></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+const titles={dashboard:'Dashboard',inventory:'Inventory',orders:'Orders',suppliers:'Suppliers',reports:'Reports',users:'Users & Roles',settings:'Settings',audit:'Audit Logs'};
+const ctas={
+  dashboard:{label:'Add Item',modal:'m-item'},
+  inventory:{label:'Add Item',modal:'m-item'},
+  orders:{label:'New Order',modal:'m-order'},
+  suppliers:{label:'Add Supplier',modal:'m-supplier'},
+  reports:{label:'Export Report',modal:null},
+  users:{label:'Add User',modal:'m-user'},
+  settings:{label:'Save Settings',modal:null},
+  audit:{label:'Export Logs',modal:null}
+};
+
+function navigate(el, page) {
+  document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.getElementById('page-title').textContent=titles[page]||page;
+  const c=ctas[page];
+  document.getElementById('topbar-cta-label').textContent=c.label;
+  const btn=document.getElementById('topbar-cta');
+  btn.onclick=c.modal ? ()=>openModal(c.modal) : ()=>showToast(c.label+' triggered!');
+}
+function navTo(page){
+  const el=document.querySelector('.nav-item[onclick*='+page+']');
+  if(el) navigate(el,page);
+}
+function switchTab(btn,paneId){
+  const container=btn.closest('.page,.modal');
+  container.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  container.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(paneId).classList.add('active');
+}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-bg').forEach(m=>{
+  m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');});
+});
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent='✓ '+msg;t.style.display='block';
+  clearTimeout(t._t);t._t=setTimeout(()=>t.style.display='none',2600);
+}
+</script>
+</body>
+</html>
