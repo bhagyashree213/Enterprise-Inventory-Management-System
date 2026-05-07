@@ -1,2 +1,25 @@
-# Enterprise-Inventory-Management-System
-Developed a full-stack Enterprise Inventory Management System using ASP.NET MVC and SQL Server with role-based authentication, secure login, inventory tracking, supplier and order management. Designed normalized database schema, optimized SQL queries, and followed MVC architecture with responsive UI.
+# Enterprise Inventory Management System
+
+## Features
+- Role-based authentication
+- Secure login system
+- Inventory management
+- Order tracking
+- Supplier management
+- Reports dashboard
+- Audit logs
+
+## Tech Stack
+- ASP.NET MVC
+- C#
+- SQL Server
+- HTML/CSS/JavaScript
+
+## Setup
+1. Clone repository
+2. Configure SQL Server connection string
+3. Run database scripts
+4. Start application
+
+## Author
+Bhagyashree Bhusare
